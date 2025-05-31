@@ -298,7 +298,7 @@ func DownloadAndInstall(version GoVersion) tea.Cmd {
 }
 
 func CreateLink(homeDir string, target string) {
-	targetPath := "/home/cmalfait/.govm/versions/go" + target
+	targetPath := homeDir+"/.govm/versions/go" + target
 	symlinkPath := homeDir+"/go"
 
 	_, err := os.Lstat(symlinkPath)
