@@ -296,6 +296,33 @@ func DownloadAndInstall(version GoVersion) tea.Cmd {
 		return DownloadCompleteMsg{Version: version.Version, Path: versionDir}
 	}
 }
+
+func CreateLink(homeDir string, target string) {
+	targetPath := "/home/cmalfait/.govm/versions/go" + target
+	symlinkPath := homeDir+"/go"
+
+	_, err := os.Lstat(symlinkPath)
+
+	if err == nil {
+		err = os.Remove(symlinkPath)
+		if err != nil {
+			fmt.Println("Error removing symlink:", err)
+			return
+		}
+		fmt.Println("Existing symlink removed.")
+	} else if !os.IsNotExist(err) {
+		fmt.Println("Error checking symlink:", err)
+		return
+	}
+	// Create the new symlink
+	err = os.Symlink(targetPath, symlinkPath)
+	if err != nil {
+		fmt.Println("Error creating symlink:", err)
+		return
+	}
+	fmt.Println("Symlink created successfully.")
+}
+
 func SwitchVersion(version GoVersion) tea.Cmd {
 	return func() tea.Msg {
 		homeDir, err := os.UserHomeDir()
@@ -344,6 +371,9 @@ func SwitchVersion(version GoVersion) tea.Cmd {
 		if err := os.WriteFile(versionFile, []byte(version.Version), 0644); err != nil {
 			return ErrMsg(fmt.Errorf("failed to update active version file: %v", err))
 		}
+
+		CreateLink(homeDir, string([]byte(version.Version)))
+
 		shimInPath := IsShimInPath()
 		return SwitchCompletedMsg{
 			Version:    version.Version,
